@@ -14,31 +14,43 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import Vue from 'vue';
 import axios from 'axios';
 
-export default {
+interface Todo {
+  id: number;
+  title: string;
+  completed: boolean;
+}
+
+export default Vue.extend({
+
+
   name: 'App',
   data() {
     return {
-      todos: [],
-      newTodoTitle: '' // 初期値
+      todos: [] as Todo[],
+      newTodoTitle: '' // 初期値は空文字
     }
   },
-  mounted() {
-    this.fetchTodos();
+  async mounted() {
+    await this.fetchTodos();
   },
   methods: {
-    async fetchTodos() {
+    async fetchTodos(): Promise<void> {
       try {
-        const response = await axios.get('http://localhost:3000/todos');
+        const response = await axios.get<Todo[]>('http://localhost:3000/todos');
         this.todos = response.data;
       } catch (error) {
         console.error('Todoリストの取得に失敗しました:', error);
       }
       
     },
-    async addTodo() {
+    async addTodo(): Promise<void> {
+      if (!this.newTodoTitle.trim()) {
+        return; // タイトルが空の場合は何もしない
+      }
       try {
         await axios.post('http://localhost:3000/todos', {
           title: this.newTodoTitle,
@@ -50,19 +62,19 @@ export default {
         console.error('Todoの追加に失敗しました:', error);
       }
     },
-    async deleteTodo(id) {
+    async deleteTodo(id: number): Promise<void> {
       if (!confirm('本当に削除しますか？')) {
         return; // キャンセルされた場合は何もしない
       }
       try {
         await axios.delete(`http://localhost:3000/todos/${id}`);
-        this.fetchTodos();
+        await this.fetchTodos();
       } catch (error) {
         console.error('Todoの削除に失敗しました:', error);
       }
     }
-  }
-};
+  },
+});
 </script>
 
 <style>
