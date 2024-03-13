@@ -2,12 +2,13 @@
   <div id="app">
     <h1>Todoリスト</h1>
     <div>
-      <input v-model="newTodoTitle" placeholder="新しいTodoを追加">
+      <input v-model="newTodoTitle" placeholder="新しいTodoを追加" @keyup.enter="addTodo">
       <button @click="addTodo">登録</button>
     </div>
     <ul>
       <li v-for="todo in todos" :key="todo.id">
         {{ todo.title }} - {{ todo.completed ? '完了' : '未完了' }}
+        <button @click="deleteTodo(todo.id)">削除</button>
       </li>
     </ul>
   </div>
@@ -20,7 +21,8 @@ export default {
   name: 'App',
   data() {
     return {
-      todos: []
+      todos: [],
+      newTodoTitle: '' // 初期値
     }
   },
   mounted() {
@@ -46,6 +48,17 @@ export default {
       this.fetchTodos(); // Todoリストを再取得
       } catch (error) {
         console.error('Todoの追加に失敗しました:', error);
+      }
+    },
+    async deleteTodo(id) {
+      if (!confirm('本当に削除しますか？')) {
+        return; // キャンセルされた場合は何もしない
+      }
+      try {
+        await axios.delete(`http://localhost:3000/todos/${id}`);
+        this.fetchTodos();
+      } catch (error) {
+        console.error('Todoの削除に失敗しました:', error);
       }
     }
   }
